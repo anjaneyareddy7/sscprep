@@ -1,9 +1,8 @@
-import { createFileRoute, Link, notFound, useParams } from "@tanstack/react-router";
+import { createFileRoute, notFound, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PageHeader, EmptyState } from "@/components/page-header";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +14,10 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, BookOpen, ChevronRight, Pencil, Trash2, Layers } from "lucide-react";
+import { Plus, BookOpen, Trash2, Layers } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { TopicPanel } from "@/components/topic-panel";
 
 export const Route = createFileRoute("/_authenticated/subjects/$slug")({
   head: () => ({ meta: [{ title: "Subject — CGL Hub" }] }),
@@ -179,24 +179,30 @@ function SubjectPage() {
                   <AccordionContent>
                     <div className="space-y-2 pb-2">
                       {sec.topics.length === 0 && <p className="text-sm text-muted-foreground px-2">No topics yet.</p>}
-                      {sec.topics.map((t) => (
-                        <Link key={t.id} to="/topics/$id" params={{ id: t.id }} className="block">
-                          <Card className="hover:bg-accent/30 transition">
-                            <CardContent className="p-3 flex items-center gap-3">
-                              <StatusDot status={t.status} />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium truncate">{t.name}</div>
-                                <div className="text-xs text-muted-foreground">{t.videoCount} video{t.videoCount === 1 ? "" : "s"}</div>
-                              </div>
-                              <Badge variant="outline" className="capitalize">{t.status.replace("_", " ")}</Badge>
+                      <Accordion type="multiple" className="space-y-2">
+                        {sec.topics.map((t) => (
+                          <AccordionItem key={t.id} value={t.id} className="rounded-md border bg-background px-3">
+                            <div className="flex items-center gap-2">
+                              <AccordionTrigger className="flex-1">
+                                <div className="flex items-center gap-3 text-left w-full">
+                                  <StatusDot status={t.status} />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate">{t.name}</div>
+                                    <div className="text-xs text-muted-foreground">{t.videoCount} video{t.videoCount === 1 ? "" : "s"}</div>
+                                  </div>
+                                  <Badge variant="outline" className="capitalize mr-2">{t.status.replace("_", " ")}</Badge>
+                                </div>
+                              </AccordionTrigger>
                               {isAdmin && (
                                 <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); deleteTopic.mutate(t.id); }} aria-label="Delete topic"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                               )}
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      ))}
+                            </div>
+                            <AccordionContent>
+                              <TopicPanel topicId={t.id} />
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
                       {isAdmin && (
                         <Dialog open={addTopicOpenFor === sec.id} onOpenChange={(o) => setAddTopicOpenFor(o ? sec.id : null)}>
                           <DialogTrigger asChild>
