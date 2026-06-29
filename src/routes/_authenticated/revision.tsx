@@ -20,12 +20,14 @@ function RevisionPage() {
     queryFn: async () => {
       const { data: revs } = await supabase.from("revision_history").select("*").eq("user_id", user!.id).order("revised_at", { ascending: false });
       const ids = Array.from(new Set((revs ?? []).map((r) => r.topic_id)));
-      const { data: topics } = ids.length
+      const topicsRes = ids.length
         ? await supabase.from("topics").select("id, name, section:sections!inner(name, subject:subjects!inner(name))").in("id", ids)
-        : { data: [] };
-      const byTopic: Record<string, { topic: typeof topics[number] | undefined; count: number; last: string }> = {};
+        : { data: [] as Array<{ id: string; name: string; section: { name: string; subject: { name: string } } }> };
+      const topics = topicsRes.data ?? [];
+      type TopicRow = { id: string; name: string; section: { name: string; subject: { name: string } } };
+      const byTopic: Record<string, { topic: TopicRow | undefined; count: number; last: string }> = {};
       revs?.forEach((r) => {
-        if (!byTopic[r.topic_id]) byTopic[r.topic_id] = { topic: topics?.find((t) => t.id === r.topic_id), count: 0, last: r.revised_at };
+        if (!byTopic[r.topic_id]) byTopic[r.topic_id] = { topic: topics.find((t) => t.id === r.topic_id) as TopicRow | undefined, count: 0, last: r.revised_at };
         byTopic[r.topic_id].count++;
       });
       return { items: Object.entries(byTopic), recent: revs ?? [] };

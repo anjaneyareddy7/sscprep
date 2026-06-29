@@ -157,8 +157,8 @@ function UsersTab() {
           return (
             <div key={u.id} className="rounded-lg border p-3 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="font-medium truncate">{u.full_name || u.email}</div>
-                <div className="text-xs text-muted-foreground truncate">{u.email}</div>
+                <div className="font-medium truncate">{u.full_name || "Unnamed member"}</div>
+                <div className="text-xs text-muted-foreground truncate font-mono">{u.id.slice(0, 8)}</div>
               </div>
               <div className="flex items-center gap-3">
                 {isAdmin && <Badge className="gap-1"><Shield className="h-3 w-3" /> Admin</Badge>}

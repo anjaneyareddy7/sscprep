@@ -45,7 +45,7 @@ function MocksPage() {
     mutationFn: async () => {
       if (!score || !total) throw new Error("Enter score and total");
       const { error } = await supabase.from("mock_history").insert({
-        user_id: user!.id, platform_id: platformId || null, test_name: testName || null,
+        user_id: user!.id, platform_id: platformId || null, test_name: testName.trim() || "Mock attempt",
         score: parseFloat(score), total: parseFloat(total), attempted_at: new Date(attempted).toISOString(),
       });
       if (error) throw error;
