@@ -67,14 +67,25 @@ function AuthPage() {
     if (!eRes.success) return toast.error(eRes.error.issues[0].message);
     if (!pRes.success) return toast.error(pRes.error.issues[0].message);
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: eRes.data, password: pRes.data,
-      options: { emailRedirectTo: window.location.origin + "/dashboard", data: { full_name: nRes.data } },
+      options: { data: { full_name: nRes.data } },
     });
+    if (error) { setLoading(false); return toast.error(error.message); }
+    if (signUpData.session) {
+      toast.success("Account created. Welcome!");
+      navigate({ to: "/dashboard" });
+      return;
+    }
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email: eRes.data, password: pRes.data });
     setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Account created. Check your inbox to confirm.");
-    setTab("signin");
+    if (signInError) {
+      toast.success("Account created. Please sign in.");
+      setTab("signin");
+      return;
+    }
+    toast.success("Account created. Welcome!");
+    navigate({ to: "/dashboard" });
   };
 
   const handleForgot = async (e: React.FormEvent) => {
