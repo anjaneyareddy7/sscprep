@@ -8,6 +8,7 @@ interface AuthCtx {
   loading: boolean;
   isAdmin: boolean;
   refreshRole: () => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthCtx>({
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthCtx>({
   loading: true,
   isAdmin: false,
   refreshRole: async () => {},
+  signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -50,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{
       user, session, loading, isAdmin,
       refreshRole: async () => { await loadRole(user?.id); },
+      signOut: async () => { await supabase.auth.signOut(); },
     }}>
       {children}
     </AuthContext.Provider>
