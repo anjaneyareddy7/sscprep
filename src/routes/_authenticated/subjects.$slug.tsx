@@ -179,24 +179,30 @@ function SubjectPage() {
                   <AccordionContent>
                     <div className="space-y-2 pb-2">
                       {sec.topics.length === 0 && <p className="text-sm text-muted-foreground px-2">No topics yet.</p>}
-                      {sec.topics.map((t) => (
-                        <Link key={t.id} to="/topics/$id" params={{ id: t.id }} className="block">
-                          <Card className="hover:bg-accent/30 transition">
-                            <CardContent className="p-3 flex items-center gap-3">
-                              <StatusDot status={t.status} />
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium truncate">{t.name}</div>
-                                <div className="text-xs text-muted-foreground">{t.videoCount} video{t.videoCount === 1 ? "" : "s"}</div>
-                              </div>
-                              <Badge variant="outline" className="capitalize">{t.status.replace("_", " ")}</Badge>
+                      <Accordion type="multiple" className="space-y-2">
+                        {sec.topics.map((t) => (
+                          <AccordionItem key={t.id} value={t.id} className="rounded-md border bg-background px-3">
+                            <div className="flex items-center gap-2">
+                              <AccordionTrigger className="flex-1">
+                                <div className="flex items-center gap-3 text-left w-full">
+                                  <StatusDot status={t.status} />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium truncate">{t.name}</div>
+                                    <div className="text-xs text-muted-foreground">{t.videoCount} video{t.videoCount === 1 ? "" : "s"}</div>
+                                  </div>
+                                  <Badge variant="outline" className="capitalize mr-2">{t.status.replace("_", " ")}</Badge>
+                                </div>
+                              </AccordionTrigger>
                               {isAdmin && (
                                 <Button variant="ghost" size="icon" onClick={(e) => { e.preventDefault(); deleteTopic.mutate(t.id); }} aria-label="Delete topic"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                               )}
-                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                            </CardContent>
-                          </Card>
-                        </Link>
-                      ))}
+                            </div>
+                            <AccordionContent>
+                              <TopicPanel topicId={t.id} />
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
                       {isAdmin && (
                         <Dialog open={addTopicOpenFor === sec.id} onOpenChange={(o) => setAddTopicOpenFor(o ? sec.id : null)}>
                           <DialogTrigger asChild>
