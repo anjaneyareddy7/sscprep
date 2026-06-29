@@ -28,7 +28,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <div className="flex-1" />
             <ThemeToggle />
             <Button asChild variant="ghost" size="icon">
-              <Link to="/notifications" aria-label="Notifications"><Bell className="h-4 w-4" /></Link>
+              <Link to="/reminders" aria-label="Reminders"><Bell className="h-4 w-4" /></Link>
             </Button>
             <Link to="/profile" className="ml-1">
               <Avatar className="h-8 w-8 border">

@@ -1,8 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  LayoutDashboard, BookOpen, Library, ClipboardList, RotateCw,
-  BarChart3, Search, Bell, User as UserIcon, Shield, GraduationCap,
-} from "lucide-react";
+import { LayoutDashboard, BookOpen, ClipboardList, RotateCw, ChartBar as BarChart3, Star, Bookmark, Bell, User as UserIcon, Shield, GraduationCap } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
@@ -12,14 +9,14 @@ import { useAuth } from "@/hooks/use-auth";
 const main = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Subjects", url: "/subjects", icon: BookOpen },
-  { title: "Resources", url: "/resources", icon: Library },
   { title: "Mock Tests", url: "/mocks", icon: ClipboardList },
   { title: "Revision", url: "/revision", icon: RotateCw },
   { title: "Progress", url: "/progress", icon: BarChart3 },
 ];
 const tools = [
-  { title: "Search", url: "/search", icon: Search },
-  { title: "Notifications", url: "/notifications", icon: Bell },
+  { title: "Favorites", url: "/favorites", icon: Star },
+  { title: "Bookmarks", url: "/bookmarks", icon: Bookmark },
+  { title: "Reminders", url: "/reminders", icon: Bell },
   { title: "Profile", url: "/profile", icon: UserIcon },
 ];
 
