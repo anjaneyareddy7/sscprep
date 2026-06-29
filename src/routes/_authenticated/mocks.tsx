@@ -59,7 +59,7 @@ function MocksPage() {
 
   const chartData = (historyQ.data ?? []).slice().reverse().map((h) => ({
     date: format(new Date(h.attempted_at), "MMM dd"),
-    pct: h.total ? Math.round((h.score / h.total) * 100) : 0,
+    pct: h.total && h.score != null ? Math.round((h.score / h.total) * 100) : 0,
   }));
 
   return (
@@ -141,7 +141,7 @@ function MocksPage() {
           <CardHeader className="pb-2"><CardTitle className="text-base">Recent attempts</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {(historyQ.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">No attempts yet.</p> : historyQ.data?.map((h) => {
-              const pct = h.total ? Math.round((h.score / h.total) * 100) : 0;
+              const pct = h.total && h.score != null ? Math.round((h.score / h.total) * 100) : 0;
               return (
                 <div key={h.id} className="rounded-lg border p-3 flex items-center justify-between">
                   <div>
