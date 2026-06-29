@@ -1,0 +1,118 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { PageHeader, EmptyState } from "@/components/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Bell, Plus, Check, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { format, isPast } from "date-fns";
+
+export const Route = createFileRoute("/_authenticated/reminders")({
+  head: () => ({ meta: [{ title: "Reminders — CGL Hub" }] }),
+  component: RemindersPage,
+});
+
+function RemindersPage() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+  const q = useQuery({
+    queryKey: ["reminders", user?.id],
+    enabled: !!user,
+    queryFn: async () => (await supabase.from("reminders").select("*").eq("user_id", user!.id).order("remind_at", { ascending: true })).data ?? [],
+  });
+
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState("");
+  const [type, setType] = useState<"revision" | "study">("study");
+  const [remindAt, setRemindAt] = useState(new Date(Date.now() + 86400000).toISOString().slice(0, 16));
+
+  const add = useMutation({
+    mutationFn: async () => {
+      if (!message.trim()) throw new Error("Message required");
+      const { error } = await supabase.from("reminders").insert({
+        user_id: user!.id, message: message.trim(), type, remind_at: new Date(remindAt).toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Reminder added"); setOpen(false); setMessage(""); qc.invalidateQueries({ queryKey: ["reminders"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleDone = useMutation({
+    mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
+      const { error } = await supabase.from("reminders").update({ completed: done }).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["reminders"] }),
+  });
+
+  const del = useMutation({
+    mutationFn: async (id: string) => { await supabase.from("reminders").delete().eq("id", id); },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["reminders"] }),
+  });
+
+  return (
+    <>
+      <PageHeader
+        title="Reminders"
+        description="Personal nudges for revision, mock attempts, and deadlines."
+        actions={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-1" /> New reminder</Button></DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>New reminder</DialogTitle></DialogHeader>
+              <div className="space-y-3">
+                <div><Label>Message</Label><Textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="e.g. Revise Percentages tonight" /></div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label>Type</Label>
+                    <select className="w-full h-9 rounded-md border bg-background px-2 text-sm" value={type} onChange={(e) => setType(e.target.value as "revision" | "study")}>
+                      <option value="study">Study</option><option value="revision">Revision</option>
+                    </select>
+                  </div>
+                  <div><Label>Remind at</Label><Input type="datetime-local" value={remindAt} onChange={(e) => setRemindAt(e.target.value)} /></div>
+                </div>
+              </div>
+              <DialogFooter><Button onClick={() => add.mutate()} disabled={add.isPending}>Create</Button></DialogFooter>
+            </DialogContent>
+          </Dialog>
+        }
+      />
+      <div className="p-4 sm:p-6 max-w-3xl mx-auto">
+        {q.data?.length === 0 ? <EmptyState icon={<Bell className="h-5 w-5" />} title="No reminders" description="Create your first reminder." /> : (
+          <div className="space-y-2">
+            {q.data?.map((r) => {
+              const overdue = !r.completed && isPast(new Date(r.remind_at));
+              return (
+                <Card key={r.id} className={r.completed ? "opacity-60" : ""}>
+                  <CardContent className="p-3 flex items-center gap-3">
+                    <Button variant="ghost" size="icon" onClick={() => toggleDone.mutate({ id: r.id, done: !r.completed })}>
+                      <Check className={`h-4 w-4 ${r.completed ? "text-success" : "text-muted-foreground"}`} />
+                    </Button>
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-medium ${r.completed ? "line-through" : ""}`}>{r.message}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
+                        <Badge variant="outline" className="capitalize">{r.type}</Badge>
+                        {format(new Date(r.remind_at), "PPp")}
+                      </div>
+                    </div>
+                    {overdue && <Badge variant="destructive">Overdue</Badge>}
+                    <Button variant="ghost" size="icon" onClick={() => del.mutate(r.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
