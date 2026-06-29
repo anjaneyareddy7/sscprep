@@ -1,9 +1,8 @@
-import { createFileRoute, Link, notFound, useParams } from "@tanstack/react-router";
+import { createFileRoute, notFound, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { PageHeader, EmptyState } from "@/components/page-header";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +14,10 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, BookOpen, ChevronRight, Pencil, Trash2, Layers } from "lucide-react";
+import { Plus, BookOpen, Trash2, Layers } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { TopicPanel } from "@/components/topic-panel";
 
 export const Route = createFileRoute("/_authenticated/subjects/$slug")({
   head: () => ({ meta: [{ title: "Subject — CGL Hub" }] }),
